@@ -1,0 +1,14 @@
+create or alter trigger dbo.TR_Basket_insert_update on dbo.Basket
+after insert
+as
+begin
+    if @@rowcount >= 2
+    begin
+        update dbo.Basket
+        set DiscountValue = iif(
+                ID_SKU = (select i.ID_SKU from inserted as i)
+                ,Value * 0.05
+                ,0)
+        where ID_SKU = (select i.ID_SKU from inserted as i)
+    end
+end
