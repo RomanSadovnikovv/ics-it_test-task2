@@ -1,0 +1,28 @@
+create procedure dbo.usp_MakeFamilyPurchase (
+    @FamilySurName varchar(255)
+)
+as
+    begin
+        begin try
+            update dbo.Family
+            set BudgetValue = r.sumValue
+            from (
+                select (max(f.BudgetValue) - sum(b.Value)) as sumValue
+                from dbo.Family as f
+                inner join dbo.Basket as b on b.ID_Family = f.ID
+                where f.SurName = @FamilySurName
+                 ) as r
+            where SurName = @FamilySurName
+        end try
+
+        begin catch
+            if not exists(
+                select *
+                from dbo.Family as f
+                where f.SurName = @FamilySurName)
+            begin
+                raiserror(N'Семьи с указанным SurName не существует', 1, 1)
+            end
+
+        end catch
+    end
